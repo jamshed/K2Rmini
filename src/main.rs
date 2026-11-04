@@ -19,6 +19,8 @@ use std::time::Instant;
 
 #[cfg(feature = "kache-hash")]
 mod index;
+#[cfg(feature = "kache-hash")]
+mod kache;
 
 type MinIndex = FxHashSet<u64>;
 type KmerIndex = FxHashSet<u32>;
@@ -145,6 +147,9 @@ fn main() -> io::Result<()> {
     );
 
     if args.index == IndexKind::Kache {
+        #[cfg(feature = "kache-hash")]
+        return kache::run(&args);
+        #[cfg(not(feature = "kache-hash"))]
         return Err(io::Error::new(io::ErrorKind::Unsupported, "built without the kache-hash feature"));
     }
 
