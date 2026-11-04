@@ -17,8 +17,35 @@ use std::sync::{Arc, LazyLock};
 use std::thread;
 use std::time::Instant;
 
-type MinIndex = FxHashSet<u64>;
+type MinIndex = std::collections::HashSet<u64, std::hash::BuildHasherDefault<MixHasher>>;
 type KmerIndex = FxHashSet<u32>;
+
+// The minimizer index's hasher: Murmur3's 64-bit finalizer, which spreads every bit of a packed minimizer over its hash.
+// FxHasher rotates its product by 26 bits, so in a table of over 2^26 buckets the top bits of a bucket's index come from
+// the product's low bits, which only the minimizer's first bases set.
+#[derive(Default)]
+struct MixHasher(u64);
+
+impl std::hash::Hasher for MixHasher {
+    #[inline(always)]
+    fn write_u64(&mut self, x: u64) {
+        let mut h = self.0 ^ x;
+        h = (h ^ (h >> 33)).wrapping_mul(0xff51_afd7_ed55_8ccd);
+        h = (h ^ (h >> 33)).wrapping_mul(0xc4ce_b9fe_1a85_ec53);
+        self.0 = h ^ (h >> 33);
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        for &b in bytes {
+            self.write_u64(b as u64);
+        }
+    }
+
+    #[inline(always)]
+    fn finish(&self) -> u64 {
+        self.0
+    }
+}
 
 const MSG_LEN_THRESHOLD: usize = 8000; // small enough for long reads
 
