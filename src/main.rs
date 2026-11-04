@@ -137,6 +137,16 @@ fn main() -> io::Result<()> {
         start.elapsed().as_secs_f64(),
         mem_usage_gb()
     );
+    // Attribution runs time the index alone, with some of its inserts skipped.
+    if !index_skip().is_empty() {
+        eprintln!(
+            "Indexed {} k-mers and {} minimizers, skipping {}.",
+            kmer_dict.len(),
+            min_dict.len(),
+            index_skip()
+        );
+        return Ok(());
+    }
     let ref_min_dict = Arc::new(min_dict);
     let ref_kmer_dict = Arc::new(kmer_dict);
     eprintln!(
@@ -157,7 +167,14 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
+// Returns the inserts the index skips, from `K2RMINI_INDEX_SKIP`: `tq` for the k-mers' TQ, `tm,tq` for both indexes.
+fn index_skip() -> String {
+    std::env::var("K2RMINI_INDEX_SKIP").unwrap_or_default()
+}
+
 fn index_reference(args: &Args) -> io::Result<(MinIndex, KmerIndex)> {
+    let skip = index_skip();
+    let (skip_tm, skip_tq) = (skip.contains("tm"), skip.contains("tq"));
     let kmer_size: usize = args.k;
     let minimizer_size: usize = args.m;
     let window_size: usize = kmer_size - minimizer_size + 1;
@@ -183,8 +200,19 @@ fn index_reference(args: &Args) -> io::Result<(MinIndex, KmerIndex)> {
                 .slice((pos as usize)..(pos as usize + minimizer_size))
                 .as_u64()
         });
-        dict_mini.extend(mini_iter);
-        dict_kmer.extend(&kmer_hashes);
+        // The values are computed either way: only the inserts are skipped.
+        if skip_tm {
+            mini_iter.for_each(|x| {
+                std::hint::black_box(x);
+            });
+        } else {
+            dict_mini.extend(mini_iter);
+        }
+        if skip_tq {
+            std::hint::black_box(&kmer_hashes);
+        } else {
+            dict_kmer.extend(&kmer_hashes);
+        }
     }
     dict_mini.reserve(dict_mini.len() / 2);
     Ok((dict_mini, dict_kmer))
