@@ -10,6 +10,7 @@ dependencies = [
  "crossbeam-channel",
  "helicase",
  "libc",
+ "memchr",
  "regex",
  "rustc-hash",
  "simd-minimizers",

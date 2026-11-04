@@ -17,6 +17,9 @@ use std::sync::{Arc, LazyLock};
 use std::thread;
 use std::time::Instant;
 
+#[cfg(feature = "kache-hash")]
+mod index;
+
 type MinIndex = FxHashSet<u64>;
 type KmerIndex = FxHashSet<u32>;
 

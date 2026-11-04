@@ -3,6 +3,10 @@ name = "K2Rmini"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+# The k-mers of interest in kache-hash, with `--index kache`.
+kache-hash = []
+
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 crossbeam-channel = "0.5"
@@ -13,6 +17,7 @@ helicase = { git = "https://github.com/imartayan/helicase.git", rev = "583e735",
 simd-minimizers = "2.3"
 regex = "1.12"
 rustc-hash = "2.1"
+memchr = "2"
 
 [profile.release]
 opt-level = 3
