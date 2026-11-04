@@ -74,6 +74,15 @@ impl Display for Threshold {
     }
 }
 
+// Which index of the k-mers of interest to filter with.
+#[derive(clap::ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+enum IndexKind {
+    /// 1.0.0's: 32-bit hashes of the k-mers in a hash set, built on one thread.
+    Stock,
+    /// kache-hash's: the exact k-mers, built on all threads (k = 31; needs the `kache-hash` feature).
+    Kache,
+}
+
 #[derive(ClapParser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -98,6 +107,9 @@ struct Args {
     /// Number of threads [default: all]
     #[arg(short = 'T', long)]
     threads: Option<usize>,
+    /// Index of the k-mers of interest
+    #[arg(long, value_enum, default_value_t = IndexKind::Stock)]
+    index: IndexKind,
 }
 
 // https://github.com/Daniel-Liu-c0deb0t/simple-saca/blob/main/src/main.rs#L96
@@ -128,6 +140,10 @@ fn main() -> io::Result<()> {
         },
         args.threshold
     );
+
+    if args.index == IndexKind::Kache {
+        return Err(io::Error::new(io::ErrorKind::Unsupported, "built without the kache-hash feature"));
+    }
 
     eprintln!("Indexing k-mers and minimizers of interest...");
     let start = Instant::now();
