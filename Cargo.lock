@@ -299,6 +299,7 @@ dependencies = [
 [[package]]
 name = "kache-hash-sys"
 version = "0.7.0"
+source = "git+https://github.com/jamshed/kache-hash.git?tag=v0.7.0#7c6b4e9dd8b8cc2791b757d6cc12f253f424aba8"
 dependencies = [
  "cmake",
 ]

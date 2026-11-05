@@ -18,8 +18,8 @@ simd-minimizers = "2.3"
 regex = "1.12"
 rustc-hash = "2.1"
 memchr = "2"
-# In development, kache-hash's develop tree; at release, `{ git = "https://github.com/jamshed/kache-hash-private.git", tag = "v0.7.0" }`.
-kache-hash-sys = { path = "../../kache-hash/rust/kache-hash-sys", optional = true }
+# kache-hash's C interface, from its v0.7.0 release.
+kache-hash-sys = { git = "https://github.com/jamshed/kache-hash.git", tag = "v0.7.0", optional = true }
 
 [profile.release]
 opt-level = 3
